@@ -1,0 +1,5 @@
+output/*
+result/*
+dataset/*
+saved_model/*
+data/*
