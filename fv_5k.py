@@ -44,7 +44,7 @@ Xtrain, XValid = train_test_split(Xtrain, test_size=0.15)
 # inception = InceptionResNetV2(weights=None, include_top=True)
 # inception.load_weights('dataset/inception_resnet_v2_weights_tf_dim_ordering_tf_kernels.h5')
 # inception.graph = tf.get_default_graph()
-embed_input = Input(shape=(3000,))
+embed_input = Input(shape=(5000,))
 
 
 # In[16]:
@@ -62,10 +62,12 @@ encoder_output = Conv2D(512, (3,3), activation='relu', padding='same')(encoder_o
 encoder_output = Conv2D(256, (3,3), activation='relu', padding='same')(encoder_output)
 #Fusion
 fusion_output = RepeatVector(32 * 32)(embed_input) 
-fusion_output = Reshape(([32, 32,3000]))(fusion_output)
+fusion_output = Reshape(([32, 32,5000]))(fusion_output)
 fusion_output = concatenate([encoder_output, fusion_output], axis=3) 
-fusion_output = Conv2D(256, (1, 1), activation='relu', padding='same')(fusion_output)
+fusion_output = Conv2D(1024, (1, 1), activation='relu', padding='same')(fusion_output)
 #Decoder
+decoder_output = Conv2D(512, (3,3), activation='relu', padding='same')(fusion_output)
+decoder_output = Conv2D(256, (3,3), activation='relu', padding='same')(fusion_output)
 decoder_output = Conv2D(128, (3,3), activation='relu', padding='same')(fusion_output)
 decoder_output = UpSampling2D((2, 2))(decoder_output)
 decoder_output = Conv2D(64, (3,3), activation='relu', padding='same')(decoder_output)
@@ -187,7 +189,7 @@ def classify(images):
 
     #         print(type(predictions_eval))
     #         embedding.append([predictions_eval[:1000]],axis=0)
-            embedding.append(predictions_eval[0:3000])
+            embedding.append(predictions_eval[0:5000])
     #         top_k = predictions_eval.argsort()[-n:][::-1]
     #         for idx in top_k:
     #       	    mid = labelmap[idx]
@@ -256,7 +258,7 @@ datagen = ImageDataGenerator(
 #                                                      class_mode='categorical', batch_size=BATCH_SIZE, subset="validation")
 
 #Generate training data
-batch_size = 120
+batch_size = 40
 def image_a_b_gen(batch_size):
     for batch in datagen.flow(Xtrain, batch_size=batch_size):
         grayscaled_rgb = gray2rgb(rgb2gray(batch))
@@ -328,3 +330,4 @@ for i in range(len(output)):
     cur[:,:,1:] = output[i]
     imsave("result/img_"+str(i)+".png", lab2rgb(cur))
 
+os.system("shutdown")
